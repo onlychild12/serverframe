@@ -1,6 +1,6 @@
 #include<sys/socket.h>
 #include"Server.h"
-#include<pthread.h>
+
 #include<netinet/in.h>
 #include<unistd.h>
 void Server::init()
@@ -12,13 +12,18 @@ void Server::init()
     sin.sin_port=htons(2333);
     bind(server,(sockaddr*)&sin,sizeof(server));
     listen(server,200000);
-    
+    pthread_create(&listen_thread,NULL,listen_m,(void*)this);//开启监听线程
 }
 void *listen_m(void *ptr)
 {
-    while (/* condition */)
+    sockaddr_in client;
+    Server *parent=(Server*)ptr;
+    int len=sizeof(client);
+    while (!parent->exit/* condition */)
     {
-        /* code */
+       parent->saccept=accept(parent->server,(sockaddr*)&client,(socklen_t*)&len); /* code */
+       pthread_t *tmp;
+       
     }
-    
+    return 0;
 }
