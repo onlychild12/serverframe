@@ -17,7 +17,27 @@ void *Threaddeal(void *nptr)
 }
 void *clean_m(void *nptr)
 {
+pthread_detach(pthread_self());
+Server*server=(Server*)nptr;
+while(!server->exit)
+{
+    pthread_mutex_lock(&mutex_clean);
+    if(server->cleanlist.size()>0)
+    {
+        pthread_mutex_lock(&mutex_threadlist);
+    for(int i=0;i<server->cleanlist.size();)
+    {
+       delete server->threadlist[server->cleanlist[i]];
+       server->threadlist.erase(server->cleanlist[i]);
+       server->cleanlist.erase(server->cleanlist.begin());
+    }
+    pthread_mutex_unlock(&mutex_threadlist);
+    }
 
+pthread_mutex_unlock(&mutex_clean);
+    
+}
+return 0;
 }
 void *threaddeal_m(void *nptr)
 {
@@ -25,6 +45,9 @@ void *threaddeal_m(void *nptr)
 }
 void Server::init()
 {
+    pthread_mutex_init(&mutex_clean,NULL);
+    pthread_mutex_init(&mutex_free,NULL);
+    pthread_mutex_init(&mutex_threadlist,NULL);
     server=socket(AF_INET,SOCK_STREAM,0);
     sockaddr_in sin;
     sin.sin_addr.s_addr=INADDR_ANY;
@@ -42,10 +65,25 @@ void *listen_m(void *ptr)
     int len=sizeof(client);
     while (!parent->exit/* condition */)
     {
-       parent->saccept=accept(parent->server,(sockaddr*)&client,(socklen_t*)&len); /* code */
+        int saccept=accept(parent->server,(sockaddr*)&client,(socklen_t*)&len); /* code */
        pthread_t *tmpthread=new pthread_t;
-       pthread_create()
+       tdd *tmptdd=new tdd;
+       tmptdd->index=parent->index;
+       tmptdd->soc=saccept;
+       pthread_create(tmpthread,NULL,Threaddeal,(void*)tmptdd);
+       pthread_mutex_lock(&mutex_threadlist);
        parent->threadlist.insert(std::pair<int,pthread_t*>(parent->index,tmpthread));//插入队列
+       pthread_mutex_unlock(&mutex_threadlist);
+       pthread_mutex_lock(&mutex_free);
+       if(parent->freelist.size()>0)
+       {
+           parent->index=parent->freelist[0];
+           parent->freelist.erase(parent->freelist.begin());
+           pthread_mutex_unlock(&mutex_free);
+       }
+       else{
+           parent->index=parent->threadlist.size();
+       }
        
 
     }
