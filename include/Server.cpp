@@ -12,7 +12,7 @@ void Server::init()
     sin.sin_port=htons(2333);
     bind(server,(sockaddr*)&sin,sizeof(server));
     listen(server,200000);
-    listen_m();
+    
 }
 void *listen_m(void *ptr)
 {
