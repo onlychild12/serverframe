@@ -7,7 +7,7 @@ private:
    int saccept;//接收socket标识符
 public:
     void init();
-    void listen();
+    void listen_m();
     Server(/* args */);
     ~Server();
 };
