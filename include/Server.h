@@ -6,7 +6,8 @@ private:
    int server;//监听socket /* data */
    int saccept;//接收socket标识符
 public:
-    void init
+    void init();
+    void listen();
     Server(/* args */);
     ~Server();
 };
