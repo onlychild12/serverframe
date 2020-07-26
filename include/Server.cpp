@@ -22,8 +22,9 @@ void *listen_m(void *ptr)
     while (!parent->exit/* condition */)
     {
        parent->saccept=accept(parent->server,(sockaddr*)&client,(socklen_t*)&len); /* code */
-       pthread_t *tmp;
+       pthread_t *tmpthread=new pthread_t;
        
+
     }
     return 0;
 }
