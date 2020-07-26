@@ -9,15 +9,19 @@ class Socket_m
     int socket_m;
     char *data;
     long package=1024;//包大小
-    Socket_m(int socket_p,int package_p=1024);
+    
+    int threadclass=0;
     public:
-   
+    Socket_m(int socket_p);
     template<class Data>
     bool litSend(Data *data);//发送
     template<class Data>
     void litEncode(char *,Data *);//解码
     char *rec_m();
     void setPacksize(long size);
+    void SetHighAuclass();//设置最高优先级
+    void SetHighclass(int);
+    int getclass();
 };
   template<class Data>
     bool Socket_m::litSend(Data *data)//发送

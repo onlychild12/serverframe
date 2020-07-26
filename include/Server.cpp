@@ -3,6 +3,8 @@
 
 #include<netinet/in.h>
 #include<unistd.h>
+#include<time.h>
+#include"litControl.h"
 pthread_mutex_t mutex_clean;//线程锁
 pthread_mutex_t mutex_threadlist;
 pthread_mutex_t mutex_free;
@@ -13,6 +15,18 @@ struct tdd//用以处理线程传参
 };
 void *Threaddeal(void *nptr)
 {
+    tdd* td=static_cast<tdd*>(nptr);
+    litControl *mycontrol=new litControl(td->soc);
+    mycontrol->init();
+    while(true)
+    {
+           char*data=mycontrol->rec_m();
+            if(mycontrol->getclass()==0)
+            {
+                mycontrol->Deal(data);
+            }
+          
+    }
     return 0;
 }
 void *clean_m(void *nptr)
@@ -27,6 +41,7 @@ while(!server->exit)
         pthread_mutex_lock(&mutex_threadlist);
     for(int i=0;i<server->cleanlist.size();)
     {
+       pthread_join(*server->threadlist[server->cleanlist[i]],NULL);
        delete server->threadlist[server->cleanlist[i]];
        server->threadlist.erase(server->cleanlist[i]);
        server->cleanlist.erase(server->cleanlist.begin());
@@ -35,6 +50,7 @@ while(!server->exit)
     }
 
 pthread_mutex_unlock(&mutex_clean);
+sleep(0.2);
     
 }
 return 0;
