@@ -7,7 +7,7 @@ private:
    int saccept;//接收socket标识符
 public:
     void init();
-    void listen_m();
+    friend void *listen_m(void *nptr);
     Server(/* args */);
     ~Server();
 };

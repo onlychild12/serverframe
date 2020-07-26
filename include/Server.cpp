@@ -14,3 +14,11 @@ void Server::init()
     listen(server,200000);
     listen_m();
 }
+void *listen_m(void *ptr)
+{
+    while (/* condition */)
+    {
+        /* code */
+    }
+    
+}
