@@ -117,8 +117,11 @@ while(!server->exit)
         pthread_mutex_lock(&mutex_threadlist);
     for(int i=0;i<server->cleanlist.size();)
     {
-       pthread_join(*server->threadlist[server->cleanlist[i]],NULL);
+       pthread_join(*server->threadlist[server->cleanlist[i]],0);
        delete server->threadlist[server->cleanlist[i]];
+       pthread_mutex_lock(&mutex_free);
+       server->freelist.push_back(server->cleanlist[i]);
+       pthread_mutex_unlock(&mutex_free);
        server->threadlist.erase(server->cleanlist[i]);
        server->cleanlist.erase(server->cleanlist.begin());
     }
@@ -167,7 +170,7 @@ void* listen_m(void* ptr)
        else{
            parent->index=parent->threadlist.size();
        }
-       
+        pthread_mutex_unlock(&mutex_free);
 
     }
     return 0;
@@ -185,6 +188,7 @@ void Server::init()
     bind(server,(sockaddr*)&sin,sizeof(sin));
     listen(server,1);
     pthread_create(&listen_thread,NULL,listen_m,(void*)this);//开启监听线程
+    pthread_create(&clean_thread,NULL,clean_m,static_cast<void*>(this));
 }
 
 Server::~Server()

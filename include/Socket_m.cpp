@@ -17,7 +17,8 @@ char* Socket_m::rec_m()
 {
     char *data=new char[package];
     memset(data,'z',package);
-    if(recv(socket_m,data,package,0)==-1)
+    int state=recv(socket_m,data,package,0);
+    if(state<=0)
        {
            delete[] data;
            return NULL;
