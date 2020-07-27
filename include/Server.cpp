@@ -1,8 +1,9 @@
 #include<sys/socket.h>
 #include"Server.h"
-
+#include<pthread.h>
 #include<netinet/in.h>
 #include<unistd.h>
+#include<signal.h>
 #include<time.h>
 #include"litControl.h"
 pthread_mutex_t mutex_clean;//线程锁
@@ -12,26 +13,92 @@ struct tdd//用以处理线程传参
 {
     int soc;
     int index;
+    Server *server;
+};
+struct dad//用以多线程处理传参
+{
+ litControl *control;
+ char*data;
 };
 void *Threaddeal(void *nptr)
 {
     tdd* td=static_cast<tdd*>(nptr);
+    Server*server=td->server;
+    int index=td->index;
     litControl *mycontrol=new litControl(td->soc);
+    std::vector<pthread_t*>tmpdealthread;
     mycontrol->init();
-    while(true)
+    while(!server->exit)
     {
            char*data=mycontrol->rec_m();
+           if(data==NULL)
+           {
+             break;
+
+           }
             if(mycontrol->getclass()==0)
             {
                 mycontrol->Deal(data);
             }
-          
+            else if(mycontrol->getclass()==-1)
+            {
+                dad *littmp=new dad;
+                pthread_t *tmp=new pthread_t;
+                littmp->control=mycontrol;
+                littmp->data=data;
+                pthread_create(tmp,NULL,threaddeal_m,static_cast<void*>(littmp));
+                tmpdealthread.push_back(tmp);
+            }
+            else if(mycontrol->getclass()<-1)
+            {
+                break;
+            }
+            else{
+            
+                    while(tmpdealthread.size()>=mycontrol->getclass())
+                    {
+                        for(int i=0;i<tmpdealthread.size();i++)
+                        {
+                            if(pthread_kill(*tmpdealthread[i],0)==ESRCH);
+                            {
+                                tmpdealthread.erase(tmpdealthread.begin()+i);
+                                delete tmpdealthread[i];
+                                i--;
+                            }
+                        }
+                        sleep(0.2);
+                    }
+                dad *littmp=new dad;
+                pthread_t *tmp=new pthread_t;
+                littmp->control=mycontrol;
+                littmp->data=data;
+                pthread_create(tmp,NULL,threaddeal_m,static_cast<void*>(littmp));
+                tmpdealthread.push_back(tmp);
+            }
     }
+               for(;tmpdealthread.size()>0;)
+               {
+               for(int i=0;i<tmpdealthread.size();i++)
+               {
+                 if(pthread_kill(*tmpdealthread[i],0)==ESRCH)
+                 {
+                     delete tmpdealthread[i];
+                    tmpdealthread.erase(tmpdealthread.begin()+i);
+                    i--;
+                 }
+               }
+               sleep(0.2);
+               }
+               delete mycontrol;
+               tmpdealthread.clear();
+               pthread_mutex_lock(&mutex_clean);
+                server->cleanlist.push_back(index);//进栈
+                pthread_mutex_unlock(&mutex_clean); 
+                delete nptr;
     return 0;
 }
 void *clean_m(void *nptr)
 {
-pthread_detach(pthread_self());
 Server*server=(Server*)nptr;
 while(!server->exit)
 {
@@ -53,11 +120,23 @@ pthread_mutex_unlock(&mutex_clean);
 sleep(0.2);
     
 }
+for(int i=0;i<server->threadlist.size();i++)
+{
+pthread_join(*server->threadlist[i],NULL);
+delete server->threadlist[i];
+
+}
+server->threadlist.clear();
 return 0;
 }
 void *threaddeal_m(void *nptr)
 {
-
+    dad *tmpdo=static_cast<dad*>(nptr);
+    litControl *control=tmpdo->control;
+    char *data=tmpdo->data;
+    control->Deal(data);
+    delete nptr;
+return 0;
 }
 void Server::init()
 {
@@ -86,6 +165,7 @@ void *listen_m(void *ptr)
        tdd *tmptdd=new tdd;
        tmptdd->index=parent->index;
        tmptdd->soc=saccept;
+       tmptdd->server=parent;
        pthread_create(tmpthread,NULL,Threaddeal,(void*)tmptdd);
        pthread_mutex_lock(&mutex_threadlist);
        parent->threadlist.insert(std::pair<int,pthread_t*>(parent->index,tmpthread));//插入队列
@@ -104,4 +184,10 @@ void *listen_m(void *ptr)
 
     }
     return 0;
+}
+Server::~Server()
+{
+    pthread_join(clean_thread,NULL);
+    cleanlist.clear();
+    freelist.clear();
 }

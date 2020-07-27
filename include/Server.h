@@ -12,10 +12,12 @@ private:
    bool index=0;
    std::map<int,pthread_t*>threadlist;
    std::vector<int>cleanlist;//清理队列
+  
    std::vector<int>freelist;//空闲队列
    pthread_t listen_thread;//监听线程
+   pthread_t clean_thread;//清理线程
 public:
-    
+     ~Server();
     void exit_m();
     void init();
     friend void *listen_m(void *nptr);
@@ -23,7 +25,6 @@ public:
     friend void *Threaddeal(void *nptr);
     friend void *threaddeal_m(void *nptr);
     Server(/* args */);
-    ~Server();
 };
 
 Server::Server(/* args */)

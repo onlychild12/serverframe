@@ -22,6 +22,7 @@ class Socket_m
     void SetHighAuclass();//设置最高优先级
     void SetHighclass(int);
     int getclass();
+    ~Socket_m();
 };
   template<class Data>
     bool Socket_m::litSend(Data *data)//发送
