@@ -27,13 +27,6 @@ public:
     Server(/* args */);
 };
 
-Server::Server(/* args */)
-{
-}
 
-Server::~Server()
-{
-    
-}
 
 #endif

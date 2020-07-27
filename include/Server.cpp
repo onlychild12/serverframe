@@ -20,6 +20,15 @@ struct dad//用以多线程处理传参
  litControl *control;
  char*data;
 };
+void *threaddeal_m(void *nptr)
+{
+    dad *tmpdo=static_cast<dad*>(nptr);
+    litControl *control=tmpdo->control;
+    char *data=tmpdo->data;
+    control->Deal(data);
+    delete nptr;
+return 0;
+}
 void *Threaddeal(void *nptr)
 {
     tdd* td=static_cast<tdd*>(nptr);
@@ -129,30 +138,8 @@ delete server->threadlist[i];
 server->threadlist.clear();
 return 0;
 }
-void *threaddeal_m(void *nptr)
-{
-    dad *tmpdo=static_cast<dad*>(nptr);
-    litControl *control=tmpdo->control;
-    char *data=tmpdo->data;
-    control->Deal(data);
-    delete nptr;
-return 0;
-}
-void Server::init()
-{
-    pthread_mutex_init(&mutex_clean,NULL);
-    pthread_mutex_init(&mutex_free,NULL);
-    pthread_mutex_init(&mutex_threadlist,NULL);
-    server=socket(AF_INET,SOCK_STREAM,0);
-    sockaddr_in sin;
-    sin.sin_addr.s_addr=INADDR_ANY;
-    sin.sin_family=AF_INET;
-    sin.sin_port=htons(2333);
-    bind(server,(sockaddr*)&sin,sizeof(server));
-    listen(server,200000);
-    pthread_create(&listen_thread,NULL,listen_m,(void*)this);//开启监听线程
-}
-void *listen_m(void *ptr)
+
+void* listen_m(void* ptr)
 {
     pthread_detach(pthread_self());
     sockaddr_in client;
@@ -185,9 +172,29 @@ void *listen_m(void *ptr)
     }
     return 0;
 }
+void Server::init()
+{
+    pthread_mutex_init(&mutex_clean,NULL);
+    pthread_mutex_init(&mutex_free,NULL);
+    pthread_mutex_init(&mutex_threadlist,NULL);
+    server=socket(AF_INET,SOCK_STREAM,0);
+    sockaddr_in sin;
+    sin.sin_family=AF_INET;
+    sin.sin_port=htons(2333);
+    sin.sin_addr.s_addr=INADDR_ANY;
+    bind(server,(sockaddr*)&sin,sizeof(sin));
+    int z=htons(2333);
+    listen(server,20000);
+    pthread_create(&listen_thread,NULL,listen_m,(void*)this);//开启监听线程
+}
+
 Server::~Server()
 {
     pthread_join(clean_thread,NULL);
     cleanlist.clear();
     freelist.clear();
+}
+
+Server::Server(/* args */)
+{
 }
