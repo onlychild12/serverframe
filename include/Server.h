@@ -9,7 +9,7 @@ private:
    int server;//监听socket /* data */
 //    int saccept;//接收socket标识符
    bool exit=false;
-   bool index=0;
+   int index=0;
    std::map<int,pthread_t*>threadlist;
    std::vector<int>cleanlist;//清理队列
   

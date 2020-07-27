@@ -7,6 +7,7 @@ int main()
     Server server;
     server.init();
     std::cout<<"开始运行";
+    while(true)
     std::cin>>a;
     // std::map<int,char>test;
     // test.insert(std::pair<int,char>(1,'z'));

@@ -147,7 +147,7 @@ void* listen_m(void* ptr)
     int len=sizeof(client);
     while (!parent->exit/* condition */)
     {
-        int saccept=accept(parent->server,(sockaddr*)&client,(socklen_t*)&len); /* code */
+       int saccept=accept(parent->server,(sockaddr*)&client,(socklen_t*)&len); /* code */
        pthread_t *tmpthread=new pthread_t;
        tdd *tmptdd=new tdd;
        tmptdd->index=parent->index;
@@ -183,8 +183,7 @@ void Server::init()
     sin.sin_port=htons(2333);
     sin.sin_addr.s_addr=INADDR_ANY;
     bind(server,(sockaddr*)&sin,sizeof(sin));
-    int z=htons(2333);
-    listen(server,20000);
+    listen(server,1);
     pthread_create(&listen_thread,NULL,listen_m,(void*)this);//开启监听线程
 }
 
